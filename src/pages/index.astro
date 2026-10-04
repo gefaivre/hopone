@@ -132,17 +132,43 @@ const stats = [
       </ul>
     </section>
 
-    <section id="newsletter" class="newsletter" aria-labelledby="nl-title">
+    <section class="newsletter" aria-labelledby="nl-title">
       <div class="wrap newsletter__inner">
         <div>
           <p class="eyebrow eyebrow--dark">Every Monday, 7am</p>
           <h2 id="nl-title">The newsletter that sums up the business of running.</h2>
           <p>A 5-minute read. The week’s deals, numbers and trends. Free.</p>
         </div>
-        <form class="newsletter__form" action="/newsletter/thank-you" method="get">
-          <label for="email" class="sr-only">Email address</label>
-          <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
-          <button type="submit" class="btn btn--dark">Sign me up</button>
+        <form
+          id="newsletter"
+          class="newsletter__form"
+          action="https://cardinal-seven.vercel.app/api/subscribe"
+          method="POST"
+        >
+          <input type="hidden" name="site" value="hopone" />
+          <input type="hidden" name="lang" value="fr" />
+          <!-- Anti-spam : champ invisible, à laisser vide -->
+          <input
+            type="text"
+            name="website"
+            tabindex="-1"
+            autocomplete="off"
+            style="position:absolute;left:-9999px"
+            aria-hidden="true"
+          />
+          <div class="newsletter__input-wrap">
+            <label for="newsletter-email" class="sr-only">Email address</label>
+            <input
+              id="newsletter-email"
+              type="email"
+              name="email"
+              required
+              placeholder="ton@email.com"
+              autocomplete="email"
+            />
+            <button type="submit" class="btn btn--dark">S'inscrire</button>
+          </div>
+          <p data-message class="newsletter__message" role="status" aria-live="polite"></p>
         </form>
       </div>
     </section>
@@ -150,3 +176,54 @@ const stats = [
 
   <SiteFooter />
 </Base>
+
+<script>
+  const form = document.getElementById("newsletter") as HTMLFormElement | null;
+  if (form) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = form.querySelector("[data-message]") as HTMLElement | null;
+      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+      const data = Object.fromEntries(new FormData(form));
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+      }
+      if (message) {
+        message.className = "newsletter__message";
+        message.textContent = "";
+      }
+
+      try {
+        const res = await fetch("https://cardinal-seven.vercel.app/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          // La langue de la page (<html lang="…">) détermine celle des emails
+          body: JSON.stringify({ ...data, site: "hopone", lang: document.documentElement.lang || "fr" }),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (message) {
+          message.textContent = json.message ?? (res.ok ? "Merci pour votre inscription !" : "Une erreur est survenue.");
+          message.classList.add(res.ok ? "is-success" : "is-error");
+        }
+        if (res.ok) {
+          form.reset();
+          const emailVal = typeof data.email === "string" ? data.email : "";
+          setTimeout(() => {
+            window.location.href = `/newsletter/thank-you?email=${encodeURIComponent(emailVal)}`;
+          }, 700);
+        } else if (submitBtn) {
+          submitBtn.disabled = false;
+        }
+      } catch (err) {
+        if (message) {
+          message.textContent = "Une erreur est survenue. Veuillez réessayer.";
+          message.classList.add("is-error");
+        }
+        if (submitBtn) {
+          submitBtn.disabled = false;
+        }
+      }
+    });
+  }
+</script>
