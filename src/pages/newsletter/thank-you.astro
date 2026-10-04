@@ -1,0 +1,265 @@
+---
+import Base from '../../layouts/Base.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { getArticles, toArticle, categories, categorySlug } from '../../data/articles';
+
+const title = 'Merci ! Your subscription is confirmed | Hopone';
+const description =
+  'Thank you for subscribing to the Hopone weekly newsletter. Every Monday at 7am, get the business, deals, and finance of running straight to your inbox.';
+
+const allArticles = (await getArticles()).map(toArticle);
+const featuredStories = allArticles.slice(0, 3);
+---
+
+<Base title={title} description={description}>
+  <SiteHeader />
+
+  <main id="main" class="wrap thankyou">
+    <div class="thankyou__hero">
+      <div class="thankyou__badge">
+        <span class="thankyou__badge-dot" aria-hidden="true"></span>
+        <span>Subscription Confirmed</span>
+      </div>
+
+      <h1 class="thankyou__title">Merci, you’re in the pack.</h1>
+
+      <p class="thankyou__lead">
+        Your subscription to the <strong>Hopone Monday Briefing</strong> is active.
+        <span id="email-confirmation-text" class="thankyou__subscriber-wrapper" style="display: none;">
+          We’ve registered <span id="subscriber-email" class="thankyou__email-box"></span>.
+        </span>
+      </p>
+
+      <div class="thankyou__cards">
+        <div class="thankyou__card">
+          <div class="thankyou__card-icon" aria-hidden="true">🗓️</div>
+          <h3>Every Monday at 7:00 AM</h3>
+          <p>A concise 5-minute briefing directly in your inbox before markets open. The essential numbers and strategic deals of the week.</p>
+        </div>
+
+        <div class="thankyou__card">
+          <div class="thankyou__card-icon" aria-hidden="true">📊</div>
+          <h3>100% Signal, Zero Fluff</h3>
+          <p>Curated business journalism covering apparel & footwear brands, marathon economics, sponsorship deals, and emerging running tech.</p>
+        </div>
+
+        <div class="thankyou__card">
+          <div class="thankyou__card-icon" aria-hidden="true">📬</div>
+          <h3>Never miss an issue</h3>
+          <p>Please check your inbox (and spam or Promotions tab). Whitelist <code>newsletter@hopone.fr</code> to guarantee delivery.</p>
+        </div>
+      </div>
+
+      <div class="thankyou__actions">
+        <a href="#latest-stories" class="btn">Read latest briefings</a>
+        <a href="/" class="btn btn--secondary">Back to homepage</a>
+      </div>
+    </div>
+
+    <section id="latest-stories" class="thankyou__stories">
+      <div class="thankyou__stories-head">
+        <h2>While you wait, dive into our latest stories</h2>
+        <a href="/articles">View all briefings →</a>
+      </div>
+
+      <div class="grid">
+        {featuredStories.map((article) => <ArticleCard article={article} />)}
+      </div>
+    </section>
+
+    <section class="rubriques thankyou__rubriques" aria-labelledby="sectors-title">
+      <div class="section-head">
+        <h2 id="sectors-title" class="section-title">Explore by industry sector</h2>
+        <p class="section-sub">Comprehensive coverage across the six pillars of the running economy.</p>
+      </div>
+
+      <ul class="rubriques__grid">
+        {
+          categories.map((c, i) => (
+            <li>
+              <a href={`/section/${categorySlug(c.name)}`}>
+                <span class="rubriques__num">{String(i + 1).padStart(2, '0')}</span>
+                <h3>{c.name}</h3>
+                <p>{c.desc}</p>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </main>
+
+  <SiteFooter />
+</Base>
+
+<script>
+  // Safely display email if passed in query string (?email=...)
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get('email');
+    if (email && email.includes('@')) {
+      const emailElem = document.getElementById('subscriber-email');
+      const wrapperElem = document.getElementById('email-confirmation-text');
+      if (emailElem && wrapperElem) {
+        emailElem.textContent = email;
+        wrapperElem.style.display = 'inline';
+      }
+    }
+  } catch (e) {
+    // Graceful fallback
+  }
+</script>
+
+<style>
+  .thankyou {
+    padding: 3.5rem 0 5rem;
+  }
+  .thankyou__hero {
+    background: var(--paper-2);
+    border: 2px solid var(--ink);
+    border-radius: var(--radius);
+    padding: 3.5rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .thankyou__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--lime);
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    margin-bottom: 1.5rem;
+  }
+  .thankyou__badge-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--ink);
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .thankyou__title {
+    font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+  }
+  .thankyou__lead {
+    font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+    color: var(--muted);
+    max-width: 660px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.5;
+  }
+  .thankyou__subscriber-wrapper {
+    display: block;
+    margin-top: 0.4rem;
+  }
+  .thankyou__email-box {
+    display: inline-block;
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    padding: 0.15rem 0.55rem;
+    border-radius: 6px;
+    font-weight: 600;
+    color: var(--ink);
+    word-break: break-all;
+  }
+  .thankyou__cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    text-align: left;
+    margin-bottom: 2.5rem;
+  }
+  .thankyou__card {
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    border-radius: calc(var(--radius) - 4px);
+    padding: 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .thankyou__card-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+  }
+  .thankyou__card h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+  .thankyou__card p {
+    font-size: 0.92rem;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.45;
+  }
+  .thankyou__card code {
+    background: var(--paper-2);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+  .thankyou__actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .btn--secondary {
+    background: var(--paper);
+    color: var(--ink);
+    border: 2px solid var(--ink);
+  }
+  .btn--secondary:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .thankyou__stories {
+    margin-top: 4.5rem;
+  }
+  .thankyou__stories-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 0.75rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .thankyou__stories-head h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+  }
+  .thankyou__stories-head a {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--orange);
+  }
+  .thankyou__stories-head a:hover {
+    text-decoration: underline;
+  }
+  .thankyou__rubriques {
+    margin-top: 4.5rem;
+  }
+  @media (max-width: 820px) {
+    .thankyou__hero {
+      padding: 2.2rem 1.25rem;
+    }
+    .thankyou__cards {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+</style>
