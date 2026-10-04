@@ -1,0 +1,64 @@
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+export type Article = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  author: string;
+  date: string; // ISO
+  readingTime: number;
+  tone: 'lime' | 'orange' | 'blue' | 'ink';
+};
+
+export const AUTHOR = 'Hopone Newsroom';
+
+export const categories = [
+  { name: 'Markets', desc: 'Stocks, valuations and earnings from the big running brands.' },
+  { name: 'Brands', desc: 'Strategy, product launches and the battle for market share.' },
+  { name: 'Races', desc: 'The economics of marathons, trail races and mass-participation events.' },
+  { name: 'Sponsorship', desc: 'Athlete contracts, title sponsors and media rights.' },
+  { name: 'Startups', desc: 'Funding rounds, apps, wearables and new entrants.' },
+  { name: 'Retail', desc: 'Distribution, DTC, specialty run shops and e-commerce.' },
+];
+
+export const categorySlug = (name: string) => name.toLowerCase();
+
+// Each brief restates a figure from a sourced article.
+export const briefs = [
+  'Nike Q1 revenue falls 4% to $11.2bn; Greater China down 22%',
+  '166,000 runners enter the first Paris Marathon ballot',
+  'Dublin Marathon entry rises 18% to €130 for 2027',
+  'Generali replaces BMW as Berlin Marathon title sponsor after 16 years',
+  'Copenhagen Half: 188,522 entries for 45,000 places',
+  'Grandma’s Marathon 2027 sells out in 174 minutes',
+];
+
+const readingTime = (body = '') => Math.max(1, Math.ceil(body.split(/\s+/).length / 200));
+
+export const toArticle = (entry: CollectionEntry<'articles'>): Article => ({
+  slug: entry.id,
+  title: entry.data.title,
+  excerpt: entry.data.excerpt,
+  category: entry.data.category,
+  author: AUTHOR,
+  date: entry.data.date.toISOString().slice(0, 10),
+  readingTime: readingTime(entry.body),
+  tone: entry.data.tone,
+});
+
+/** All articles, most prominent first (priority, then newest). */
+export async function getArticles() {
+  const entries = await getCollection('articles');
+  return entries.sort(
+    (a, b) => a.data.priority - b.data.priority || b.data.date.getTime() - a.data.date.getTime(),
+  );
+}
+
+export const formatDate = (iso: string | Date) =>
+  new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(iso));

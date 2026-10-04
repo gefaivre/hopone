@@ -1,0 +1,37 @@
+---
+import { categories, categorySlug } from '../data/articles';
+
+const today = new Intl.DateTimeFormat('en-US', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+}).format(new Date());
+---
+
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="topbar">
+  <div class="wrap topbar__inner">
+    <span class="topbar__date">{today}</span>
+    <a href="/#newsletter" class="topbar__link">Free newsletter →</a>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap masthead__inner">
+    <a href="/" class="logo" aria-label="Hopone home">
+      <svg viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
+        <rect width="64" height="64" rx="14" fill="currentColor"></rect>
+        <path d="M14 44 L26 30 L34 38 L50 18" fill="none" stroke="#d7ff3a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      <span>hopone</span>
+    </a>
+    <nav aria-label="Sections" class="nav">
+      <ul>
+        {categories.map((c) => <li><a href={`/section/${categorySlug(c.name)}`}>{c.name}</a></li>)}
+      </ul>
+    </nav>
+    <a href="/#newsletter" class="btn btn--small">Subscribe</a>
+  </div>
+</header>

@@ -1,0 +1,30 @@
+---
+import { type Article, formatDate } from '../data/articles';
+
+interface Props {
+  article: Article;
+  size?: 'lead' | 'side' | 'grid';
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { article, size = 'grid', headingLevel: H = 'h3' } = Astro.props;
+const href = `/articles/${article.slug}`;
+---
+
+<article class={`card card--${size}`}>
+  <a href={href} class={`card__visual tone-${article.tone}`} aria-hidden="true" tabindex="-1">
+    <span class="card__track"></span>
+  </a>
+  <div class="card__body">
+    <p class="card__kicker">{article.category}</p>
+    <H class="card__title"><a href={href}>{article.title}</a></H>
+    {size !== 'side' && <p class="card__excerpt">{article.excerpt}</p>}
+    <p class="card__meta">
+      <span>{article.author}</span>
+      <span aria-hidden="true">·</span>
+      <time datetime={article.date}>{formatDate(article.date)}</time>
+      <span aria-hidden="true">·</span>
+      <span>{article.readingTime} min read</span>
+    </p>
+  </div>
+</article>

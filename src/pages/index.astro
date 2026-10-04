@@ -1,0 +1,152 @@
+---
+import Base from '../layouts/Base.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { getArticles, toArticle, categories, categorySlug, briefs } from '../data/articles';
+
+const title = 'Hopone — The business and finance of running';
+const description =
+  'Hopone covers the economics of running: markets, brands, marathons, sponsorship, startups and retail. Running business news, every day.';
+
+const site = Astro.site!.toString().replace(/\/$/, '');
+const allArticles = (await getArticles()).map(toArticle);
+const [lead, ...rest] = allArticles;
+const topStories = rest.slice(0, 3);
+const latest = rest.slice(3);
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'NewsMediaOrganization',
+    name: 'Hopone',
+    url: site,
+    logo: `${site}/favicon.svg`,
+    description,
+    sameAs: [],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Hopone',
+    url: site,
+    inLanguage: 'en',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: allArticles.map((a, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `${site}/articles/${a.slug}`,
+      name: a.title,
+    })),
+  },
+];
+
+const stats = [
+  { value: '$11.2bn', label: 'Nike revenue in Q1 fiscal 2027, down 4%', slug: 'nike-q1-fiscal-2027-pace-plan' },
+  { value: '166,000', label: 'Applicants for the first Paris Marathon ballot', slug: 'paris-marathon-2027-lottery' },
+  { value: '€130', label: 'Dublin Marathon entry fee for 2027, up 18%', slug: 'dublin-marathon-entry-fee-2027' },
+  { value: '4.2×', label: 'Applicants per place at the Copenhagen Half', slug: 'copenhagen-half-marathon-2027-lottery' },
+];
+
+---
+
+<Base title={title} description={description} jsonLd={jsonLd}>
+  <SiteHeader />
+
+  <div class="ticker" role="region" aria-label="Briefing">
+    <span class="ticker__label">Briefing</span>
+    <div class="ticker__viewport">
+      <ul class="ticker__track">
+        {[...briefs, ...briefs].map((b, i) => <li aria-hidden={i >= briefs.length ? 'true' : undefined}>{b}</li>)}
+      </ul>
+    </div>
+  </div>
+
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero__intro">
+        <p class="eyebrow">The business of running</p>
+        <h1 id="hero-title">
+          Follow the money<br />that keeps the world <em>running</em>.
+        </h1>
+        <p class="hero__lead">
+          Brands, marathons, sponsorship, startups: every day, Hopone breaks down the economics of running for
+          curious runners, industry insiders and investors.
+        </p>
+      </div>
+
+      <div class="hero__grid">
+        <ArticleCard article={lead} size="lead" headingLevel="h2" />
+        <div class="hero__side">
+          <h2 class="section-label">Top stories</h2>
+          {topStories.map((a) => <ArticleCard article={a} size="side" />)}
+        </div>
+      </div>
+    </section>
+
+    <section class="stats" aria-labelledby="stats-title">
+      <div class="wrap">
+        <h2 id="stats-title" class="section-title section-title--light">Running by the numbers</h2>
+        <ul class="stats__grid">
+          {
+            stats.map((s) => (
+              <li>
+                <strong>{s.value}</strong>
+                <span>{s.label}</span>
+                <a href={`/articles/${s.slug}`} class="stats__link">Read the story →</a>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="stats__note">Every figure comes from a sourced Hopone article.</p>
+      </div>
+    </section>
+
+    <section class="wrap latest" aria-labelledby="latest-title">
+      <div class="section-head">
+        <h2 id="latest-title" class="section-title">Latest analysis</h2>
+        <a href="/articles" class="link-arrow">All analysis →</a>
+      </div>
+      <div class="grid">
+        {latest.map((a) => <ArticleCard article={a} />)}
+      </div>
+    </section>
+
+    <section class="wrap rubriques" aria-labelledby="rub-title">
+      <h2 id="rub-title" class="section-title">Our sections</h2>
+      <ul class="rubriques__grid">
+        {
+          categories.map((c, i) => (
+            <li>
+              <a href={`/section/${categorySlug(c.name)}`}>
+                <span class="rubriques__num">{String(i + 1).padStart(2, '0')}</span>
+                <h3>{c.name}</h3>
+                <p>{c.desc}</p>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section id="newsletter" class="newsletter" aria-labelledby="nl-title">
+      <div class="wrap newsletter__inner">
+        <div>
+          <p class="eyebrow eyebrow--dark">Every Monday, 7am</p>
+          <h2 id="nl-title">The newsletter that sums up the business of running.</h2>
+          <p>A 5-minute read. The week’s deals, numbers and trends. Free.</p>
+        </div>
+        <form class="newsletter__form" action="#" method="post">
+          <label for="email" class="sr-only">Email address</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+          <button type="submit" class="btn btn--dark">Sign me up</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter />
+</Base>
