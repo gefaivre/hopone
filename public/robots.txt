@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 
+Sitemap: https://www.hopone.run/sitemap.xml
 Sitemap: https://www.hopone.run/sitemap-index.xml
