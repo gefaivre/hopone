@@ -13,7 +13,21 @@ const href = `/articles/${article.slug}`;
 
 <article class={`card card--${size}`}>
   <a href={href} class={`card__visual tone-${article.tone}`} aria-hidden="true" tabindex="-1">
-    <span class="card__track"></span>
+    {
+      article.cover ? (
+        <img
+          class="card__img"
+          src={article.cover.webp}
+          alt=""
+          width="1200"
+          height="630"
+          loading={size === 'lead' ? 'eager' : 'lazy'}
+          decoding="async"
+        />
+      ) : (
+        <span class="card__track" />
+      )
+    }
   </a>
   <div class="card__body">
     <p class="card__kicker">{article.category}</p>

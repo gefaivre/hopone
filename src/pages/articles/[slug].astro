@@ -25,6 +25,7 @@ const jsonLd = [
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
     headline: entry.data.title,
+    ...(article.cover && { image: [`${site}${article.cover.png}`] }),
     description: entry.data.excerpt,
     datePublished: entry.data.date.toISOString(),
     dateModified: entry.data.date.toISOString(),
@@ -47,7 +48,13 @@ const jsonLd = [
 ];
 ---
 
-<Base title={`${entry.data.title} | Hopone`} description={entry.data.excerpt} type="article" jsonLd={jsonLd}>
+<Base
+  title={`${entry.data.title} | Hopone`}
+  description={entry.data.excerpt}
+  type="article"
+  image={article.cover?.png}
+  jsonLd={jsonLd}
+>
   <SiteHeader />
 
   <main id="main" class="wrap article">
@@ -63,6 +70,14 @@ const jsonLd = [
         <span>{article.readingTime} min read</span>
       </p>
     </header>
+
+    {
+      article.cover && (
+        <figure class="article__cover">
+          <img src={article.cover.webp} alt={article.cover.alt} width="1200" height="630" fetchpriority="high" />
+        </figure>
+      )
+    }
 
     <div class="article__body">
       <Content />

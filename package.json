@@ -7,7 +7,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "covers": "node scripts/generate-covers.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

@@ -18,7 +18,7 @@ const articles = defineCollection({
         stat: z.string(),
         label: z.string(),
         chart: z.object({
-          type: z.enum(['bars', 'diverging', 'timeline', 'clock']),
+          type: z.enum(['bars', 'diverging', 'timeline', 'clock', 'line', 'columns', 'donut', 'stacked', 'versus']),
           title: z.string(),
           items: z.array(z.record(z.string(), z.unknown())).min(1),
         }),

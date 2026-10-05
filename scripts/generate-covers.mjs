@@ -15,7 +15,9 @@ const fontDir = path.join(root, 'scripts/fonts');
 
 const W = 1200;
 const H = 630;
-const SERIF = 'Fraunces 144pt'; // family name inside the static Google Fonts TTF
+// Family name inside the static Google Fonts TTF. Display cut only: at small sizes its 3 reads like a 5,
+// so chart values use Inter.
+const SERIF = 'Fraunces 144pt';
 const SANS = 'Inter';
 
 const PALETTES = {
@@ -70,7 +72,7 @@ function bars(chart, p) {
       <text x="${CX}" y="${y + 18}" font-family="${SANS}" font-weight="500" font-size="21" fill="${p.fg}">${esc(item.label)}</text>
       <rect x="${CX}" y="${y + 30}" width="${CW}" height="${barH}" rx="6" fill="${p.track}"/>
       <rect x="${CX}" y="${y + 30}" width="${w.toFixed(1)}" height="${barH}" rx="6" fill="${p.bar}"/>
-      <text x="${CX + CW}" y="${y + 18}" text-anchor="end" font-family="${SERIF}" font-weight="800" font-size="26" fill="${p.fg}">${esc(item.display)}</text>`;
+      <text x="${CX + CW}" y="${y + 18}" text-anchor="end" font-family="${SANS}" font-weight="700" font-size="25" fill="${p.fg}">${esc(item.display)}</text>`;
     })
     .join('');
 }
@@ -91,7 +93,7 @@ function diverging(chart, p) {
       return `
       <text x="${CX}" y="${y + barH / 2 + 7}" font-family="${SANS}" font-weight="500" font-size="21" fill="${p.fg}">${esc(item.label)}</text>
       <rect x="${baseX}" y="${y}" width="${w.toFixed(1)}" height="${barH}" rx="6" fill="${v < 0 ? p.neg : p.bar}"/>
-      <text x="${baseX + w + 12}" y="${y + barH / 2 + 9}" font-family="${SERIF}" font-weight="800" font-size="26" fill="${p.fg}">${esc(item.display)}</text>`;
+      <text x="${baseX + w + 12}" y="${y + barH / 2 + 9}" font-family="${SANS}" font-weight="700" font-size="25" fill="${p.fg}">${esc(item.display)}</text>`;
     })
     .join('');
   return `<line x1="${baseX}" y1="${CY + 35}" x2="${baseX}" y2="${CY + CH}" stroke="${p.fg}" stroke-width="2" opacity="0.4"/>${rows}`;
@@ -139,14 +141,180 @@ function clock(chart, p) {
     <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${p.track}" stroke-width="34"/>
     <path d="${arc(full, r)}" fill="none" stroke="${p.fg}" stroke-opacity="0.28" stroke-width="34"/>
     <path d="${arc(after.value, r)}" fill="none" stroke="${p.bar}" stroke-width="34" stroke-linecap="round"/>
-    <text x="${cx}" y="${cy - 6}" text-anchor="middle" font-family="${SERIF}" font-weight="800" font-size="44" fill="${p.fg}">${esc(after.display)}</text>
+    <text x="${cx}" y="${cy - 6}" text-anchor="middle" font-family="${SANS}" font-weight="700" font-size="42" fill="${p.fg}">${esc(after.display)}</text>
     <text x="${cx}" y="${cy + 28}" text-anchor="middle" font-family="${SANS}" font-weight="500" font-size="19" fill="${p.muted}">${esc(after.label)}</text>
     <text x="${cx}" y="${cy + r + 52}" text-anchor="middle" font-family="${SANS}" font-weight="500" font-size="19" fill="${p.muted}">Full circle = ${esc(before.label)}: ${esc(before.display)}</text>`;
 }
 
-const CHARTS = { bars, diverging, timeline, clock };
+/** Plot area below the chart title, shared by the axis-based charts. */
+const PLOT_TOP = CY + 60;
+const PLOT_BOTTOM = CY + CH - 30;
+const axisLabel = (x, text, p) =>
+  `<text x="${x.toFixed(1)}" y="${PLOT_BOTTOM + 30}" text-anchor="middle" font-family="${SANS}" font-weight="500" font-size="17" fill="${p.muted}">${esc(text)}</text>`;
+const baseline = (p) =>
+  `<line x1="${CX}" y1="${PLOT_BOTTOM}" x2="${CX + CW}" y2="${PLOT_BOTTOM}" stroke="${p.fg}" stroke-opacity="0.4" stroke-width="2"/>`;
 
-function coverSvg({ category, tone, cover }) {
+/** Fill for the n-th part of a whole: the first (headline) part takes the bar colour, the rest fade out in ink. */
+const partFill = (i, p) => (i === 0 ? { fill: p.bar, opacity: 1 } : { fill: p.fg, opacity: [0.55, 0.32, 0.16][i - 1] ?? 0.16 });
+
+/** Change over time. Only the first and last values are labelled; every point gets an x label. */
+function line(chart, p) {
+  const items = chart.items;
+  const values = items.map((i) => Number(i.value));
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  // Without `zero`, the lowest point floats 60px above the axis, leaving room for a label under it.
+  const lo = chart.zero ? 0 : min;
+  const hi = max === lo ? lo + 1 : max;
+  const floor = chart.zero ? PLOT_BOTTOM : PLOT_BOTTOM - 60;
+  const inset = 30;
+  const x = (i) => CX + inset + (i / Math.max(1, items.length - 1)) * (CW - inset * 2);
+  const y = (v) => floor - ((v - lo) / (hi - lo)) * (floor - PLOT_TOP - 30);
+  const pts = values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
+  const area = `M ${x(0).toFixed(1)},${PLOT_BOTTOM} L ${pts.join(' L ')} L ${x(items.length - 1).toFixed(1)},${PLOT_BOTTOM} Z`;
+  const last = items.length - 1;
+  const marks = values
+    .map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${i === last ? 9 : 6}" fill="${p.bar}" stroke="${p.bg}" stroke-width="3"/>`)
+    .join('');
+  // Put the label on the side of the point away from its neighbour, so it never sits on the line.
+  const valueLabel = (i, anchor) => {
+    const neighbour = values[i === 0 ? 1 : i - 1] ?? values[i];
+    const dy = neighbour > values[i] && y(values[i]) + 40 < PLOT_BOTTOM - 8 ? 40 : -20;
+    return `<text x="${x(i).toFixed(1)}" y="${(y(values[i]) + dy).toFixed(1)}" text-anchor="${anchor}" font-family="${SANS}" font-weight="700" font-size="${i === last ? 28 : 22}" fill="${p.fg}">${esc(items[i].display)}</text>`;
+  };
+  const step = Math.ceil(items.length / 7);
+  const labels = items.map((it, i) => (i % step === 0 || i === last ? axisLabel(x(i), it.label, p) : '')).join('');
+  return `
+    <path d="${area}" fill="${p.bar}" fill-opacity="0.16"/>
+    ${baseline(p)}
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${p.bar}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+    ${marks}${valueLabel(0, 'start')}${valueLabel(last, 'end')}${labels}`;
+}
+
+/** Vertical bars, usually one per year. The last column (or `highlight`) is the story; the others recede. */
+function columns(chart, p) {
+  const items = chart.items;
+  const max = Math.max(...items.map((i) => Number(i.value)));
+  const hl = chart.highlight ?? items.length - 1;
+  const slot = CW / items.length;
+  const colW = Math.min(90, slot * 0.66);
+  const plotH = PLOT_BOTTOM - PLOT_TOP - 40;
+  const showAll = items.length <= 6;
+  return (
+    items
+      .map((item, i) => {
+        const h = Math.max(6, (Number(item.value) / max) * plotH);
+        const cx = CX + slot * i + slot / 2;
+        const isHl = i === hl;
+        const value =
+          showAll || isHl || i === 0
+            ? `<text x="${cx.toFixed(1)}" y="${(PLOT_BOTTOM - h - 14).toFixed(1)}" text-anchor="middle" font-family="${SANS}" font-weight="700" font-size="${isHl ? 26 : 20}" fill="${p.fg}">${esc(item.display)}</text>`
+            : '';
+        return `
+      <rect x="${(cx - colW / 2).toFixed(1)}" y="${(PLOT_BOTTOM - h).toFixed(1)}" width="${colW.toFixed(1)}" height="${h.toFixed(1)}" rx="6" fill="${isHl ? p.bar : p.fg}" fill-opacity="${isHl ? 1 : 0.35}"/>
+      ${value}${axisLabel(cx, item.label, p)}`;
+      })
+      .join('') + baseline(p)
+  );
+}
+
+/** Parts of a whole (2–4 parts). The first part is the headline and is printed in the centre. */
+function donut(chart, p) {
+  const items = chart.items.slice(0, 4);
+  const total = items.reduce((s, i) => s + Number(i.value), 0);
+  const cx = CX + 125;
+  const cy = CY + 60 + (CH - 60) / 2;
+  const r = 105;
+  const gap = 0.025; // radians of background between segments
+  let angle = -Math.PI / 2;
+  const segs = items
+    .map((item, i) => {
+      const sweep = (Number(item.value) / total) * 2 * Math.PI;
+      const a1 = angle + gap / 2;
+      const a2 = angle + sweep - gap / 2;
+      angle += sweep;
+      const pt = (a) => `${(cx + r * Math.cos(a)).toFixed(1)} ${(cy + r * Math.sin(a)).toFixed(1)}`;
+      const { fill, opacity } = partFill(i, p);
+      return `<path d="M ${pt(a1)} A ${r} ${r} 0 ${a2 - a1 > Math.PI ? 1 : 0} 1 ${pt(a2)}" fill="none" stroke="${fill}" stroke-opacity="${opacity}" stroke-width="46"/>`;
+    })
+    .join('');
+  const legendX = CX + 280;
+  const rowH = 68;
+  const legendTop = cy - (items.length * rowH) / 2 + 10;
+  const legend = items
+    .map((item, i) => {
+      const y = legendTop + i * rowH;
+      const { fill, opacity } = partFill(i, p);
+      return `
+      <rect x="${legendX}" y="${y}" width="16" height="16" rx="3" fill="${fill}" fill-opacity="${opacity}"/>
+      <text x="${legendX + 28}" y="${y + 15}" font-family="${SANS}" font-weight="700" font-size="24" fill="${p.fg}">${esc(item.display)}</text>
+      <text x="${legendX + 28}" y="${y + 42}" font-family="${SANS}" font-weight="500" font-size="17" fill="${p.muted}">${esc(item.label)}</text>`;
+    })
+    .join('');
+  return `
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${p.track}" stroke-width="46"/>
+    ${segs}
+    <text x="${cx}" y="${cy + 14}" text-anchor="middle" font-family="${SANS}" font-weight="700" font-size="40" fill="${p.fg}">${esc(items[0].display)}</text>
+    ${legend}`;
+}
+
+/** Parts of a whole as one horizontal bar, with a legend underneath. Reads better than a donut for 2 parts. */
+function stacked(chart, p) {
+  const items = chart.items.slice(0, 4);
+  const total = items.reduce((s, i) => s + Number(i.value), 0);
+  const barH = 64;
+  const rowH = 70;
+  // Centre the bar and its legend in the chart area.
+  const y = CY + 40 + (CH - 40 - (barH + 30 + items.length * rowH)) / 2;
+  let x = CX;
+  const segs = items
+    .map((item, i) => {
+      const w = (Number(item.value) / total) * CW;
+      const { fill, opacity } = partFill(i, p);
+      // 2px of background between segments.
+      const seg = `<rect x="${(x + (i ? 1 : 0)).toFixed(1)}" y="${y}" width="${Math.max(2, w - (i ? 2 : 0) - (i < items.length - 1 ? 1 : 0)).toFixed(1)}" height="${barH}" fill="${fill}" fill-opacity="${opacity}"/>`;
+      x += w;
+      return seg;
+    })
+    .join('');
+  const legend = items
+    .map((item, i) => {
+      const ly = y + barH + 50 + i * rowH;
+      const { fill, opacity } = partFill(i, p);
+      return `
+      <rect x="${CX}" y="${ly - 16}" width="16" height="16" rx="3" fill="${fill}" fill-opacity="${opacity}"/>
+      <text x="${CX + 28}" y="${ly}" font-family="${SANS}" font-weight="500" font-size="21" fill="${p.fg}">${esc(item.label)}</text>
+      <text x="${CX + CW}" y="${ly}" text-anchor="end" font-family="${SANS}" font-weight="700" font-size="25" fill="${p.fg}">${esc(item.display)}</text>`;
+    })
+    .join('');
+  return segs + legend;
+}
+
+/** Two figures head to head. Each block: label, then the figure, then an optional note. */
+function versus(chart, p) {
+  const items = chart.items.slice(0, 2);
+  const blockH = (CH - 60) / 2;
+  const blocks = items
+    .map((item, i) => {
+      const y = CY + 60 + i * blockH;
+      const marker = i === 0 ? p.bar : p.fg;
+      return `
+      <rect x="${CX}" y="${y}" width="8" height="${blockH - 44}" rx="3" fill="${marker}" fill-opacity="${i === 0 ? 1 : 0.35}"/>
+      <text x="${CX + 30}" y="${y + 24}" font-family="${SANS}" font-weight="500" font-size="21" fill="${p.muted}">${esc(item.label)}</text>
+      <text x="${CX + 28}" y="${y + 86}" font-family="${SANS}" font-weight="700" font-size="60" letter-spacing="-1" fill="${p.fg}">${esc(item.display)}</text>
+      ${item.note ? `<text x="${CX + 30}" y="${y + 116}" font-family="${SANS}" font-weight="500" font-size="18" fill="${p.muted}">${esc(item.note)}</text>` : ''}`;
+    })
+    .join('');
+  const midY = CY + 60 + blockH - 22;
+  return `${blocks}
+    <line x1="${CX + 30}" y1="${midY}" x2="${CX + CW}" y2="${midY}" stroke="${p.fg}" stroke-opacity="0.25" stroke-width="2"/>
+    <rect x="${CX + CW - 64}" y="${midY - 18}" width="64" height="36" rx="18" fill="${p.bg}" stroke="${p.fg}" stroke-opacity="0.4" stroke-width="2"/>
+    <text x="${CX + CW - 32}" y="${midY + 7}" text-anchor="middle" font-family="${SANS}" font-weight="700" font-size="17" letter-spacing="1.5" fill="${p.fg}">VS</text>`;
+}
+
+const CHARTS = { bars, diverging, timeline, clock, line, columns, donut, stacked, versus };
+
+export function coverSvg({ category, tone, cover }) {
   const p = PALETTES[tone] ?? PALETTES.ink;
   const statSize = cover.stat.length > 7 ? 120 : 150;
   const labelLines = wrap(cover.label, 26, 3);
@@ -181,27 +349,33 @@ function parseFrontmatter(src) {
 }
 
 const fontFiles = (await readdir(fontDir)).filter((f) => f.endsWith('.ttf')).map((f) => path.join(fontDir, f));
-await mkdir(outDir, { recursive: true });
 
-const files = (await readdir(articlesDir)).filter((f) => f.endsWith('.md'));
-let count = 0;
-for (const file of files) {
-  const slug = file.replace(/\.md$/, '');
-  const data = parseFrontmatter(await readFile(path.join(articlesDir, file), 'utf8'));
-  if (!data.cover) {
-    console.warn(`skip ${slug}: no cover block`);
-    continue;
-  }
-  const svg = coverSvg({ category: data.category, tone: data.tone ?? 'ink', cover: data.cover });
-  const png = new Resvg(svg, {
+/** Renders cover data to a PNG buffer. */
+export const renderPng = (data) =>
+  new Resvg(coverSvg(data), {
     fitTo: { mode: 'width', value: W },
     font: { fontFiles, loadSystemFonts: false, defaultFontFamily: SANS },
   })
     .render()
     .asPng();
-  await writeFile(path.join(outDir, `${slug}.png`), png);
-  await sharp(png).webp({ quality: 86 }).toFile(path.join(outDir, `${slug}.webp`));
-  count++;
-  console.log(`✓ ${slug}`);
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  await mkdir(outDir, { recursive: true });
+
+  const files = (await readdir(articlesDir)).filter((f) => f.endsWith('.md'));
+  let count = 0;
+  for (const file of files) {
+    const slug = file.replace(/\.md$/, '');
+    const data = parseFrontmatter(await readFile(path.join(articlesDir, file), 'utf8'));
+    if (!data.cover) {
+      console.warn(`skip ${slug}: no cover block`);
+      continue;
+    }
+    const png = renderPng({ category: data.category, tone: data.tone ?? 'ink', cover: data.cover });
+    await writeFile(path.join(outDir, `${slug}.png`), png);
+    await sharp(png).webp({ quality: 86 }).toFile(path.join(outDir, `${slug}.webp`));
+    count++;
+    console.log(`✓ ${slug}`);
+  }
+  console.log(`${count} cover(s) written to public/covers/`);
 }
-console.log(`${count} cover(s) written to public/covers/`);
