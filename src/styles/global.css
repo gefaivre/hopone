@@ -819,3 +819,65 @@ h3 {
     transition: none !important;
   }
 }
+
+/* Pagination of the listings (/articles/page/2, /section/x/page/2) */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--ink);
+  font-weight: 600;
+}
+.pagination a:hover {
+  color: var(--orange);
+}
+.pagination__status {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Blocks rendered by the CMS that markdown never produced */
+.article__body .cms-table {
+  overflow-x: auto;
+}
+.article__body blockquote {
+  margin: 0 0 1.2rem;
+  padding-left: 1.2rem;
+  border-left: 4px solid var(--lime);
+  font-style: italic;
+}
+.article__body .cms-callout,
+.article__body .cms-takeaways {
+  margin: 0 0 1.5rem;
+  padding: 1.2rem 1.4rem;
+  background: var(--paper-2);
+  border-left: 4px solid var(--ink);
+}
+.article__body .cms-callout__title {
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+.article__body .cms-faq details {
+  border-bottom: 1px solid var(--line);
+  padding: 0.9rem 0;
+}
+.article__body .cms-faq summary {
+  font-weight: 600;
+  cursor: pointer;
+}
+.article__body .cms-figure {
+  margin: 2rem 0;
+}
+.article__body .cms-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.article__body .cms-figure figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

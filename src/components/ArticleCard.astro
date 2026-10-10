@@ -1,4 +1,5 @@
 ---
+import CmsPicture from '@autoedit/astro-cms/components/CmsPicture.astro';
 import { type Article, formatDate } from '../data/articles';
 
 interface Props {
@@ -8,22 +9,15 @@ interface Props {
 }
 
 const { article, size = 'grid', headingLevel: H = 'h3' } = Astro.props;
-const href = `/articles/${article.slug}`;
+const { href } = article;
+const sizes = { lead: '(max-width: 900px) 100vw, 60vw', side: '120px', grid: '(max-width: 700px) 100vw, 380px' }[size];
 ---
 
 <article class={`card card--${size}`}>
   <a href={href} class={`card__visual tone-${article.tone}`} aria-hidden="true" tabindex="-1">
     {
       article.cover ? (
-        <img
-          class="card__img"
-          src={article.cover.webp}
-          alt=""
-          width="1200"
-          height="630"
-          loading={size === 'lead' ? 'eager' : 'lazy'}
-          decoding="async"
-        />
+        <CmsPicture image={{ ...article.cover, alt: '' }} class="card__img" sizes={sizes} priority={size === 'lead'} />
       ) : (
         <span class="card__track" />
       )

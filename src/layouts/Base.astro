@@ -7,10 +7,13 @@ interface Props {
   image?: string;
   type?: 'website' | 'article';
   jsonLd?: Record<string, unknown>[];
+  /** Defaults to the current path on the production domain. */
+  canonical?: string;
+  noindex?: boolean;
 }
 
-const { title, description, image = '/og.svg', type = 'website', jsonLd = [] } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const { title, description, image = '/og.svg', type = 'website', jsonLd = [], canonical: canonicalProp, noindex = false } = Astro.props;
+const canonical = canonicalProp ?? new URL(Astro.url.pathname, Astro.site).toString();
 const ogImage = new URL(image, Astro.site);
 ---
 
@@ -22,10 +25,10 @@ const ogImage = new URL(image, Astro.site);
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large'} />
     <meta name="theme-color" content="#0b0b0c" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="sitemap" href="/sitemap.xml" />
 
     <meta property="og:type" content={type} />
     <meta property="og:locale" content="en_US" />
@@ -47,7 +50,7 @@ const ogImage = new URL(image, Astro.site);
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap"
     />
 
-    {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
+    {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data).replace(/</g, '\\u003c')} />)}
   </head>
   <body>
     <slot />

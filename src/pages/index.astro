@@ -3,14 +3,14 @@ import Base from '../layouts/Base.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
-import { getArticles, toArticle, categories, categorySlug, briefs } from '../data/articles';
+import { getArticles, categories, categorySlug, briefs } from '../data/articles';
 
 const title = 'Hopone — The business and finance of running';
 const description =
   'Hopone covers the economics of running: markets, brands, marathons, sponsorship, startups and retail. Running business news, every day.';
 
 const site = Astro.site!.toString().replace(/\/$/, '');
-const allArticles = (await getArticles()).map(toArticle);
+const allArticles = await getArticles(13);
 const [lead, ...rest] = allArticles;
 const topStories = rest.slice(0, 3);
 const latest = rest.slice(3);
@@ -38,7 +38,7 @@ const jsonLd = [
     itemListElement: allArticles.map((a, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      url: `${site}/articles/${a.slug}`,
+      url: `${site}${a.href}`,
       name: a.title,
     })),
   },

@@ -3,13 +3,13 @@ import Base from '../../layouts/Base.astro';
 import SiteHeader from '../../components/SiteHeader.astro';
 import SiteFooter from '../../components/SiteFooter.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
-import { getArticles, toArticle, categories, categorySlug } from '../../data/articles';
+import { getArticles, categories, categorySlug } from '../../data/articles';
 
 const title = 'Merci ! Your subscription is confirmed | Hopone';
 const description =
   'Thank you for subscribing to the Hopone weekly newsletter. Every Monday at 7am, get the business, deals, and finance of running straight to your inbox.';
 
-const allArticles = (await getArticles()).map(toArticle);
+const allArticles = await getArticles(3);
 const featuredStories = allArticles.slice(0, 3);
 ---
 

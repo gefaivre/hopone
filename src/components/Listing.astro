@@ -1,0 +1,58 @@
+---
+import type { ContentSummary, Paginated } from '@autoedit/astro-cms';
+import Base from '../layouts/Base.astro';
+import SiteHeader from './SiteHeader.astro';
+import SiteFooter from './SiteFooter.astro';
+import ArticleCard from './ArticleCard.astro';
+import { toArticle } from '../data/articles';
+
+interface Props {
+  title: string;
+  heading: string;
+  description: string;
+  /** Path of page 1, e.g. `/section/markets`. Next pages: `/section/markets/page/2`. */
+  basePath: string;
+  contents: Paginated<ContentSummary>;
+  empty?: string;
+}
+
+const { title, heading, description, basePath, contents, empty = 'No stories yet. Check back soon.' } = Astro.props;
+const { page, totalPages } = contents;
+const pageHref = (n: number) => (n <= 1 ? basePath : `${basePath}/page/${n}`);
+const articles = contents.items.map(toArticle);
+---
+
+<Base title={page > 1 ? `${title} — page ${page}` : title} description={description}>
+  <SiteHeader />
+
+  <main id="main" class="wrap listing">
+    <div class="section-head">
+      <h1 class="section-title">{heading}</h1>
+      {description && <p class="listing__desc">{description}</p>}
+    </div>
+    {
+      articles.length > 0 ? (
+        <div class="grid">
+          {articles.map((a) => (
+            <ArticleCard article={a} />
+          ))}
+        </div>
+      ) : (
+        <p class="listing__empty">{empty}</p>
+      )
+    }
+    {
+      totalPages > 1 && (
+        <nav class="pagination" aria-label="Pagination">
+          {page > 1 ? <a href={pageHref(page - 1)} rel="prev">← Newer</a> : <span />}
+          <span class="pagination__status">
+            Page {page} of {totalPages}
+          </span>
+          {page < totalPages ? <a href={pageHref(page + 1)} rel="next">Older →</a> : <span />}
+        </nav>
+      )
+    }
+  </main>
+
+  <SiteFooter />
+</Base>

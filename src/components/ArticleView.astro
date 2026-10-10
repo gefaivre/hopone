@@ -1,0 +1,134 @@
+---
+import type { DeliveryContent } from '@autoedit/astro-cms';
+import CmsBlocks from '@autoedit/astro-cms/components/CmsBlocks.astro';
+import CmsPicture from '@autoedit/astro-cms/components/CmsPicture.astro';
+import Base from '../layouts/Base.astro';
+import SiteHeader from './SiteHeader.astro';
+import SiteFooter from './SiteFooter.astro';
+import ArticleCard from './ArticleCard.astro';
+import { AUTHOR, formatDate, getArticles, toArticle } from '../data/articles';
+
+interface Props {
+  content: DeliveryContent;
+}
+
+const { content } = Astro.props;
+const article = toArticle(content);
+const related = (await getArticles(4)).filter((a) => a.id !== content.id).slice(0, 3);
+const site = Astro.site!.toString().replace(/\/$/, '');
+const url = content.seo.canonical;
+const published = content.publishedAt ?? content.updatedAt;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: content.title,
+    ...(content.hero && { image: [content.hero.original] }),
+    description: content.seo.description,
+    datePublished: published,
+    dateModified: content.updatedAt,
+    articleSection: article.category,
+    inLanguage: 'en',
+    mainEntityOfPage: url,
+    author: { '@type': 'Organization', name: content.persona?.name ?? AUTHOR, url: site },
+    publisher: { '@type': 'NewsMediaOrganization', name: 'Hopone', url: site, logo: `${site}/favicon.svg` },
+    citation: content.sources.map((s) => ({ '@type': 'CreativeWork', name: s.title, url: s.url })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: site },
+      ...(content.category
+        ? [{ '@type': 'ListItem', position: 2, name: content.category.name, item: `${site}${content.category.path}` }]
+        : []),
+      { '@type': 'ListItem', position: content.category ? 3 : 2, name: content.title, item: url },
+    ],
+  },
+  // FAQPage when the article has a FAQ block.
+  ...content.jsonLd.filter((d) => d['@type'] === 'FAQPage'),
+];
+---
+
+<Base
+  title={`${content.seo.title} | Hopone`}
+  description={content.seo.description}
+  type="article"
+  image={content.seo.og.image ?? undefined}
+  canonical={url}
+  noindex={content.seo.noindex}
+  jsonLd={jsonLd}
+>
+  <SiteHeader />
+
+  <main id="main" class="wrap article">
+    <header class="article__head">
+      {
+        content.category ? (
+          <a class="card__kicker" href={content.category.path}>{content.category.name}</a>
+        ) : (
+          <p class="card__kicker">News</p>
+        )
+      }
+      <h1>{content.title}</h1>
+      <p class="article__dek">{content.excerpt}</p>
+      <p class="card__meta">
+        <span>{article.author}</span>
+        <span aria-hidden="true">·</span>
+        <time datetime={published}>{formatDate(published)}</time>
+        <span aria-hidden="true">·</span>
+        <span>{article.readingTime} min read</span>
+      </p>
+    </header>
+
+    {
+      content.hero && (
+        <figure class="article__cover">
+          <CmsPicture image={content.hero} priority sizes="(max-width: 960px) 100vw, 960px" />
+        </figure>
+      )
+    }
+
+    <div class="article__body">
+      <CmsBlocks blocks={content.blocks} siteUrl={site} />
+    </div>
+
+    {
+      content.sources.length > 0 && (
+        <aside class="article__sources" aria-labelledby="sources-title">
+          <h2 id="sources-title">Sources</h2>
+          <ol>
+            {content.sources.map((s) => (
+              <li>
+                <span class="article__source-name">{s.name}</span> —{' '}
+                <a href={s.url} rel="noopener" target="_blank">
+                  {s.title}
+                </a>
+              </li>
+            ))}
+          </ol>
+          <p class="article__disclosure">
+            This article was written with AI by the Hopone Newsroom, using only the sources listed above. Figures marked
+            “Hopone calculation” are our own arithmetic from those sources. Nothing here is investment advice.
+          </p>
+        </aside>
+      )
+    }
+
+    {
+      related.length > 0 && (
+        <section class="article__related" aria-labelledby="related-title">
+          <h2 id="related-title" class="section-title">More from Hopone</h2>
+          <div class="grid">
+            {related.map((a) => (
+              <ArticleCard article={a} />
+            ))}
+          </div>
+        </section>
+      )
+    }
+  </main>
+
+  <SiteFooter />
+</Base>

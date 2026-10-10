@@ -1,0 +1,73 @@
+---
+/**
+ * Every CMS URL goes through this route: articles (/articles/{slug}), the
+ * article index (/articles), sections (/section/{category}), authors, their
+ * pagination (/page/N), redirects (301) and removed articles (410).
+ * Rendered on demand and cached with ISR; the CMS invalidates the paths it changes.
+ */
+import ArticleView from '../components/ArticleView.astro';
+import Listing from '../components/Listing.astro';
+import Base from '../layouts/Base.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { cms } from '../lib/cms';
+
+const res = await cms.resolve(`/${Astro.params.path ?? ''}`);
+if (res.kind === 'redirect') return Astro.redirect(res.to, res.status);
+if (res.kind === 'gone') Astro.response.status = 410;
+if (res.kind === 'notFound') Astro.response.status = 404;
+
+const basePath = Astro.url.pathname.replace(/\/page\/\d+$/, '') || '/';
+---
+
+{res.kind === 'content' && <ArticleView content={res.content} />}
+{
+  res.kind === 'newsIndex' && (
+    <Listing
+      title="All analysis — running business news | Hopone"
+      heading="All analysis"
+      description="Every Hopone story on the business and finance of running: markets, brands, races, sponsorship, startups and retail."
+      basePath={basePath}
+      contents={res.contents}
+    />
+  )
+}
+{
+  res.kind === 'category' && (
+    <Listing
+      title={`${res.category.name} — running business news | Hopone`}
+      heading={res.category.name}
+      description={res.category.description}
+      basePath={basePath}
+      contents={res.contents}
+      empty={`No ${res.category.name.toLowerCase()} stories yet. Check back soon.`}
+    />
+  )
+}
+{
+  res.kind === 'persona' && (
+    <Listing
+      title={`${res.persona.name} — ${res.persona.role || 'Hopone'} | Hopone`}
+      heading={res.persona.name}
+      description={res.persona.bio}
+      basePath={basePath}
+      contents={res.contents}
+    />
+  )
+}
+{
+  (res.kind === 'gone' || res.kind === 'notFound') && (
+    <Base title="Page not found | Hopone" description="This page does not exist or has been removed." noindex>
+      <SiteHeader />
+      <main id="main" class="wrap listing">
+        <div class="section-head">
+          <h1 class="section-title">{res.kind === 'gone' ? 'This story has been removed' : 'Page not found'}</h1>
+          <p class="listing__desc">
+            <a href="/articles">Browse all analysis →</a>
+          </p>
+        </div>
+      </main>
+      <SiteFooter />
+    </Base>
+  )
+}

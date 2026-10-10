@@ -5,3 +5,5 @@ dist/
 .env
 .env.*
 .callimaque/
+!.env.example
+.vercel/
