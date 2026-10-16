@@ -13,10 +13,20 @@ const today = new Intl.DateTimeFormat('en-US', {
 
 <div class="topbar">
   <div class="wrap topbar__inner">
-    <span class="topbar__date">{today}</span>
+    <span class="topbar__date" id="topbar-date">{today}</span>
     <a href="/#newsletter" class="topbar__link">Free newsletter →</a>
   </div>
 </div>
+
+<!-- Pages are cached by ISR for days: refresh the server-rendered date in the browser. -->
+<script is:inline>
+  document.getElementById('topbar-date').textContent = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
+</script>
 
 <header class="masthead">
   <div class="wrap masthead__inner">
