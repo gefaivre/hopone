@@ -3,11 +3,9 @@
 import Layout from '../publisher/Layout.astro';
 import { PublisherHead } from '@publisher/astro/components';
 import { codedPage } from '@publisher/astro/site';
-import { navOf } from '../i18n/ui';
 
 export const prerender = true;
 const page = codedPage(Astro.url.pathname);
-const nav = navOf(page.locale);
 ---
 
 <Layout locale={page.locale} alternates={page.alternates}>
@@ -20,7 +18,8 @@ const nav = navOf(page.locale);
     </header>
     <div class="article__body">
       <h2>Publisher</h2>
-      <p>www.hopone.run is published by Publiseo.</p>
+      <p>www.hopone.run is published by Publiseo. Director of publication: Geoffrey Faivre.</p>
+      <p>Contact: <a href="mailto:contact@hopone.run">contact@hopone.run</a>.</p>
       <h2>Host</h2>
       <p>Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, United States. <a href="https://vercel.com">vercel.com</a>.</p>
       <h2>Content</h2>
@@ -39,7 +38,6 @@ const nav = navOf(page.locale);
         This site sets no advertising cookie. If you subscribe to the newsletter, your email address is used only to send
         it, and every issue has a link to unsubscribe.
       </p>
-      {nav.contact && <p>Questions: see the <a href={nav.contact}>contact page</a>.</p>}
     </div>
   </main>
 </Layout>

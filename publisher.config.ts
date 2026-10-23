@@ -16,6 +16,16 @@ export default defineConfig({
       },
     },
     {
+      key: 'contact',
+      locales: {
+        'en-US': {
+          path: '/contact',
+          title: 'Contact Hopone',
+          description: 'Write to Hopone: a correction, a figure we got wrong, or a story about the business of running.',
+        },
+      },
+    },
+    {
       key: 'legal',
       locales: {
         'en-US': {
