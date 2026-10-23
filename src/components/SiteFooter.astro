@@ -1,17 +1,29 @@
+---
+import { navOf, t } from '../i18n/ui';
+
+type Props = { locale: string };
+const { locale } = Astro.props;
+const nav = navOf(locale);
+const ui = t(locale);
+const links = [
+  ...(nav.about ? [{ href: nav.about, label: 'About' }] : []),
+  ...(nav.contact ? [{ href: nav.contact, label: 'Contact' }] : []),
+  ...(nav.legal ? [{ href: nav.legal, label: 'Legal' }] : []),
+  { href: nav.feed, label: ui.rss },
+];
+---
+
 <footer class="footer">
   <div class="wrap footer__inner">
     <div>
-      <a href="/" class="logo logo--light"><span>hopone</span></a>
-      <p>The business and finance of running.</p>
+      <a href={nav.home} class="logo logo--light"><span>hopone</span></a>
+      <p>{ui.footerTagline}</p>
     </div>
     <nav aria-label="Footer">
       <ul>
-        <li><a href="/about">About</a></li>
-        <li><a href="/contact">Contact</a></li>
-        <li><a href="/legal">Legal</a></li>
-        <li><a href="/rss.xml">RSS</a></li>
+        {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
       </ul>
     </nav>
   </div>
-  <div class="wrap footer__legal">© {new Date().getFullYear()} Hopone. All rights reserved. Hopone articles are produced with AI from cited sources. Nothing on this site is investment advice.</div>
+  <div class="wrap footer__legal">© {new Date().getFullYear()} Hopone. All rights reserved. {ui.footerLegal}</div>
 </footer>

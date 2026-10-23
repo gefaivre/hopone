@@ -1,0 +1,16 @@
+---
+// 404 and 410 (an unpublished story).
+import type { TemplateProps } from '@publisher/astro';
+import { navOf, t } from '../i18n/ui';
+
+type Props = TemplateProps<'NotFound'>;
+const { locale, status } = Astro.props;
+const ui = t(locale);
+---
+
+<main id="main" class="wrap listing">
+  <div class="section-head">
+    <h1 class="section-title">{status === 410 ? ui.gone : ui.notFound}</h1>
+    <p class="listing__desc"><a href={navOf(locale).news}>{ui.browseAll}</a></p>
+  </div>
+</main>

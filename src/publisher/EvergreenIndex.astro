@@ -1,0 +1,11 @@
+---
+import type { TemplateProps } from '@publisher/astro';
+import Listing from '../components/Listing.astro';
+import { t } from '../i18n/ui';
+
+type Props = TemplateProps<'EvergreenIndex'>;
+const { locale, list } = Astro.props;
+const ui = t(locale);
+---
+
+<Listing locale={locale} heading={ui.evergreenIndexHeading} description={ui.evergreenIndexIntro} list={list} />

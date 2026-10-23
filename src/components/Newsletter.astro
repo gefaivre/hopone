@@ -1,0 +1,71 @@
+---
+// The newsletter form: subscriptions go to Cardinal, the email tool of the agency.
+---
+
+<section class="newsletter" aria-labelledby="nl-title">
+  <div class="wrap newsletter__inner">
+    <div>
+      <p class="eyebrow eyebrow--dark">Every Monday, 7am</p>
+      <h2 id="nl-title">The newsletter that sums up the business of running.</h2>
+      <p>A 5-minute read. The week’s deals, numbers and trends. Free.</p>
+    </div>
+    <form id="newsletter" class="newsletter__form" action="https://cardinal-seven.vercel.app/api/subscribe" method="POST">
+      <input type="hidden" name="site" value="hopone" />
+      <input type="hidden" name="lang" value="en" />
+      <!-- Anti-spam: invisible field, left empty by humans -->
+      <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true" />
+      <div class="newsletter__input-wrap">
+        <label for="newsletter-email" class="sr-only">Email address</label>
+        <input id="newsletter-email" type="email" name="email" required placeholder="you@email.com" autocomplete="email" />
+        <button type="submit" class="btn btn--dark">Sign up</button>
+      </div>
+      <p data-message class="newsletter__message" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<script>
+  const form = document.getElementById('newsletter') as HTMLFormElement | null;
+  if (form) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const message = form.querySelector('[data-message]') as HTMLElement | null;
+      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+      const data = Object.fromEntries(new FormData(form));
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (message) {
+        message.className = 'newsletter__message';
+        message.textContent = '';
+      }
+
+      try {
+        const res = await fetch('https://cardinal-seven.vercel.app/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...data, site: 'hopone', lang: 'en' }),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (message) {
+          message.textContent = json.message ?? (res.ok ? 'Thanks for subscribing!' : 'Something went wrong.');
+          message.classList.add(res.ok ? 'is-success' : 'is-error');
+        }
+        if (res.ok) {
+          form.reset();
+          const email = typeof data.email === 'string' ? data.email : '';
+          setTimeout(() => {
+            window.location.href = `/newsletter/thank-you?email=${encodeURIComponent(email)}`;
+          }, 700);
+        } else if (submitBtn) {
+          submitBtn.disabled = false;
+        }
+      } catch {
+        if (message) {
+          message.textContent = 'Something went wrong. Please try again.';
+          message.classList.add('is-error');
+        }
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
+</script>

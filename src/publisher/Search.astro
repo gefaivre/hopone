@@ -1,0 +1,27 @@
+---
+// The search page (Publisher docs/search.md): the results come from Publisher, in the browser.
+import type { TemplateProps } from '@publisher/astro';
+import Search from '../components/Search';
+import { t } from '../i18n/ui';
+
+type Props = TemplateProps<'Search'>;
+const { locale } = Astro.props;
+const ui = t(locale);
+const labels = {
+  placeholder: ui.searchPlaceholder,
+  noResults: ui.noResults,
+  all: ui.all,
+  news: ui.news,
+  evergreen: ui.explainers,
+  tool: ui.tool,
+  results: ui.results,
+  minRead: ui.minRead,
+};
+---
+
+<main id="main" class="wrap listing">
+  <div class="section-head">
+    <h1 class="section-title">{ui.search}</h1>
+  </div>
+  <Search client:only="react" locale={locale} labels={labels} />
+</main>

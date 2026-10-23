@@ -10,15 +10,20 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/react": "^7.1.0",
     "@astrojs/vercel": "11.0.12",
-    "@autoedit/astro-cms": "file:vendor/autoedit-astro-cms-0.1.0.tgz",
-    "@autoedit/blocks": "file:vendor/autoedit-blocks-0.1.0.tgz",
-    "astro": "^7.3.5"
+    "@publisher/astro": "file:vendor/publisher/astro",
+    "@publisher/client": "file:vendor/publisher/client",
+    "@tanstack/react-query": "^5.104.3",
+    "astro": "^7.4.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "allowScripts": {
     "esbuild@0.28.2": true
   },
-  "overrides": {
-    "@autoedit/blocks": "$@autoedit/blocks"
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0"
   }
 }
