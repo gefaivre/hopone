@@ -1,0 +1,33 @@
+---
+// The frame of every page. Its head (title, description, canonical, Open Graph, JSON-LD, RSS)
+// comes from Publisher in the "head" slot: none of it is written here.
+import type { TemplateProps } from '@publisher/astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import '../styles/global.css';
+
+type Props = TemplateProps<'Layout'>;
+const { locale } = Astro.props;
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b0b0c" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <slot name="head" />
+  </head>
+  <body>
+    <SiteHeader locale={locale} />
+    <slot />
+    <SiteFooter locale={locale} />
+  </body>
+</html>

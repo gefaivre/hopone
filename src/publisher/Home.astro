@@ -1,0 +1,128 @@
+---
+// The home page. Every block that changes with the contents is a zone of the site profile
+// (briefing, lead, topStories, latestNews, explainers, sections); the rest is fixed text.
+import type { TemplateProps } from '@publisher/astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import Newsletter from '../components/Newsletter.astro';
+import { navOf, t } from '../i18n/ui';
+
+type Props = TemplateProps<'Home'>;
+const { locale, zones } = Astro.props;
+const { briefing, lead, topStories, latestNews, explainers, sections } = zones;
+const ui = t(locale);
+const nav = navOf(locale);
+const leadCard = lead?.type === 'latest' ? lead.items[0] : undefined;
+---
+
+{
+  briefing?.type === 'headlines' && briefing.items.length > 0 && (
+    <div class="ticker" role="region" aria-label={ui.briefing}>
+      <span class="ticker__label">{ui.briefing}</span>
+      <div class="ticker__viewport">
+        <ul class="ticker__track">
+          {[...briefing.items, ...briefing.items].map((h, i) => (
+            <li aria-hidden={i >= briefing.items.length ? 'true' : undefined}>
+              <a href={h.path} tabindex={i >= briefing.items.length ? -1 : undefined}>
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+<main id="main">
+  <section class="hero wrap" aria-labelledby="hero-title">
+    <div class="hero__intro">
+      <p class="eyebrow">{ui.eyebrow}</p>
+      <h1 id="hero-title">
+        Follow the money<br />that keeps the world <em>running</em>.
+      </h1>
+      <p class="hero__lead">
+        Brands, marathons, sponsorship, startups: every day, Hopone breaks down the economics of running for curious
+        runners, industry insiders and investors.
+      </p>
+    </div>
+
+    {
+      leadCard && (
+        <div class="hero__grid">
+          <ArticleCard card={leadCard} locale={locale} size="lead" headingLevel="h2" />
+          {topStories?.type === 'latest' && topStories.items.length > 0 && (
+            <div class="hero__side">
+              <h2 class="section-label">{ui.topStories}</h2>
+              {topStories.items.map((card) => (
+                <ArticleCard card={card} locale={locale} size="side" />
+              ))}
+            </div>
+          )}
+        </div>
+      )
+    }
+  </section>
+
+  {
+    latestNews?.type === 'latest' && latestNews.items.length > 0 && (
+      <section class="wrap latest" aria-labelledby="latest-title">
+        <div class="section-head">
+          <h2 id="latest-title" class="section-title">
+            {ui.latestAnalysis}
+          </h2>
+          <a href={nav.news} class="link-arrow">
+            {ui.allAnalysis}
+          </a>
+        </div>
+        <div class="grid">
+          {latestNews.items.map((card) => (
+            <ArticleCard card={card} locale={locale} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    explainers?.type === 'latest' && explainers.items.length > 0 && (
+      <section class="wrap latest" aria-labelledby="explainers-title">
+        <div class="section-head">
+          <h2 id="explainers-title" class="section-title">
+            {ui.explainers}
+          </h2>
+          <a href={nav.explainers} class="link-arrow">
+            {ui.allExplainers}
+          </a>
+        </div>
+        <div class="grid">
+          {explainers.items.map((card) => (
+            <ArticleCard card={card} locale={locale} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    sections?.type === 'taxonomy' && sections.items.length > 0 && (
+      <section class="wrap rubriques" aria-labelledby="rub-title">
+        <h2 id="rub-title" class="section-title">
+          {ui.ourSections}
+        </h2>
+        <ul class="rubriques__grid">
+          {sections.items.map((c, i) => (
+            <li>
+              <a href={c.path}>
+                <span class="rubriques__num">{String(i + 1).padStart(2, '0')}</span>
+                <h3>{c.name}</h3>
+                <p>{c.description}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <Newsletter />
+</main>

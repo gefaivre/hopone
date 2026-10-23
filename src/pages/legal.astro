@@ -1,0 +1,43 @@
+---
+// The legal notice: a coded page, declared in publisher.config.ts. Its text lives here.
+import Layout from '../publisher/Layout.astro';
+import { PublisherHead } from '@publisher/astro/components';
+import { codedPage } from '@publisher/astro/site';
+
+export const prerender = true;
+const page = codedPage(Astro.url.pathname);
+---
+
+<Layout locale={page.locale} alternates={page.alternates}>
+  <PublisherHead slot="head" />
+  <main id="main" class="wrap article">
+    <header class="article__head">
+      <p class="card__kicker">Legal</p>
+      <h1>Legal notice</h1>
+      <p class="article__dek">Who publishes www.hopone.run, and who hosts it.</p>
+    </header>
+    <div class="article__body">
+      <h2>Publisher</h2>
+      <p>www.hopone.run is published by Publiseo. Director of publication: Geoffrey Faivre.</p>
+      <p>Contact: <a href="mailto:contact@hopone.run">contact@hopone.run</a>.</p>
+      <h2>Host</h2>
+      <p>Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, United States. <a href="https://vercel.com">vercel.com</a>.</p>
+      <h2>Content</h2>
+      <p>
+        Hopone articles are written with AI from published sources, which are credited and linked in each article.
+        Nothing on this site is investment advice. Brand names and trademarks belong to their owners; Hopone is not
+        affiliated with any of the companies it covers.
+      </p>
+      <h2>Intellectual property</h2>
+      <p>
+        The texts, design and logo of this site belong to the publisher, unless stated otherwise. Quotes and figures from
+        other publications belong to their authors and are credited to them.
+      </p>
+      <h2>Personal data</h2>
+      <p>
+        This site sets no advertising cookie. If you subscribe to the newsletter, your email address is used only to send
+        it, and every issue has a link to unsubscribe.
+      </p>
+    </div>
+  </main>
+</Layout>

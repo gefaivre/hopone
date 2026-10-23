@@ -1,0 +1,38 @@
+---
+// A news or an evergreen article. Its sources are part of the body (a "Sources" heading at the end).
+import type { TemplateProps } from '@publisher/astro';
+import { Blocks, Picture } from '@publisher/astro/components';
+import { formatDate, t } from '../i18n/ui';
+
+type Props = TemplateProps<'Article'>;
+const { locale, content } = Astro.props;
+const ui = t(locale);
+---
+
+<main id="main" class="wrap article">
+  <header class="article__head">
+    <a class="card__kicker" href={content.category.path}>{content.category.name}</a>
+    <h1>{content.title}</h1>
+    <p class="article__dek">{content.description}</p>
+    <p class="card__meta">
+      {content.author && <a href={content.author.path}>{content.author.name}</a>}
+      {content.author && <span aria-hidden="true">·</span>}
+      <time datetime={content.publishedAt}>{formatDate(locale, content.publishedAt)}</time>
+      <span aria-hidden="true">·</span>
+      <span>{content.readingMinutes} {ui.minRead}</span>
+    </p>
+  </header>
+
+  {
+    content.hero && (
+      <figure class="article__cover">
+        <Picture image={content.hero} loading="eager" sizes="(max-width: 960px) 100vw, 960px" />
+      </figure>
+    )
+  }
+
+  <div class="article__body">
+    <Blocks blocks={content.blocks} />
+    <p class="article__disclosure">{ui.disclosure}</p>
+  </div>
+</main>

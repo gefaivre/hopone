@@ -1,26 +1,30 @@
 ---
-import { categories, categorySlug } from '../data/articles';
+import { navOf, t } from '../i18n/ui';
 
-const today = new Intl.DateTimeFormat('en-US', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-}).format(new Date());
+type Props = { locale: string };
+const { locale } = Astro.props;
+const nav = navOf(locale);
+const ui = t(locale);
+const today = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(
+  new Date(),
+);
 ---
 
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#main">{ui.skip}</a>
 
 <div class="topbar">
   <div class="wrap topbar__inner">
     <span class="topbar__date" id="topbar-date">{today}</span>
-    <a href="/#newsletter" class="topbar__link">Free newsletter →</a>
+    <span class="topbar__links">
+      <a href={nav.search} class="topbar__link">{ui.search}</a>
+      <a href={`${nav.home === '/' ? '' : nav.home}/#newsletter`} class="topbar__link">{ui.newsletterLink}</a>
+    </span>
   </div>
 </div>
 
-<!-- Pages are cached by ISR for days: refresh the server-rendered date in the browser. -->
+<!-- Pages are cached by ISR: refresh the server-rendered date in the browser. -->
 <script is:inline>
-  document.getElementById('topbar-date').textContent = new Intl.DateTimeFormat('en-US', {
+  document.getElementById('topbar-date').textContent = new Intl.DateTimeFormat(document.documentElement.lang, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -30,18 +34,18 @@ const today = new Intl.DateTimeFormat('en-US', {
 
 <header class="masthead">
   <div class="wrap masthead__inner">
-    <a href="/" class="logo" aria-label="Hopone home">
+    <a href={nav.home} class="logo" aria-label={ui.homeLabel}>
       <svg viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
         <rect width="64" height="64" rx="14" fill="currentColor"></rect>
         <path d="M14 44 L26 30 L34 38 L50 18" fill="none" stroke="#d7ff3a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
       </svg>
       <span>hopone</span>
     </a>
-    <nav aria-label="Sections" class="nav">
+    <nav aria-label={ui.sections} class="nav">
       <ul>
-        {categories.map((c) => <li><a href={`/section/${categorySlug(c.name)}`}>{c.name}</a></li>)}
+        {nav.categories.map((c) => <li><a href={c.path}>{c.name}</a></li>)}
       </ul>
     </nav>
-    <a href="/#newsletter" class="btn btn--small">Subscribe</a>
+    <a href={`${nav.home === '/' ? '' : nav.home}/#newsletter`} class="btn btn--small">{ui.subscribe}</a>
   </div>
 </header>

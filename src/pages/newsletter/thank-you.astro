@@ -1,20 +1,18 @@
 ---
-import Base from '../../layouts/Base.astro';
-import SiteHeader from '../../components/SiteHeader.astro';
-import SiteFooter from '../../components/SiteFooter.astro';
-import ArticleCard from '../../components/ArticleCard.astro';
-import { getArticles, categories, categorySlug } from '../../data/articles';
+// Shown after a newsletter subscription (index: false in publisher.config.ts: noindex, out of the sitemap).
+// A coded page shows no CMS content: the sections come from the navigation of the site.
+import Layout from '../../publisher/Layout.astro';
+import { PublisherHead } from '@publisher/astro/components';
+import { codedPage } from '@publisher/astro/site';
+import { navOf } from '../../i18n/ui';
 
-const title = 'Merci ! Your subscription is confirmed | Hopone';
-const description =
-  'Thank you for subscribing to the Hopone weekly newsletter. Every Monday at 7am, get the business, deals, and finance of running straight to your inbox.';
-
-const allArticles = await getArticles(3);
-const featuredStories = allArticles.slice(0, 3);
+export const prerender = true;
+const page = codedPage(Astro.url.pathname);
+const nav = navOf(page.locale);
 ---
 
-<Base title={title} description={description}>
-  <SiteHeader />
+<Layout locale={page.locale} alternates={page.alternates}>
+  <PublisherHead slot="head" />
 
   <main id="main" class="wrap thankyou">
     <div class="thankyou__hero">
@@ -54,18 +52,14 @@ const featuredStories = allArticles.slice(0, 3);
 
       <div class="thankyou__actions">
         <a href="#latest-stories" class="btn">Read latest briefings</a>
-        <a href="/" class="btn btn--secondary">Back to homepage</a>
+        <a href={nav.home} class="btn btn--secondary">Back to homepage</a>
       </div>
     </div>
 
     <section id="latest-stories" class="thankyou__stories">
       <div class="thankyou__stories-head">
         <h2>While you wait, dive into our latest stories</h2>
-        <a href="/articles">View all briefings →</a>
-      </div>
-
-      <div class="grid">
-        {featuredStories.map((article) => <ArticleCard article={article} />)}
+        <a href={nav.news}>View all briefings →</a>
       </div>
     </section>
 
@@ -77,12 +71,11 @@ const featuredStories = allArticles.slice(0, 3);
 
       <ul class="rubriques__grid">
         {
-          categories.map((c, i) => (
+          nav.categories.map((c, i) => (
             <li>
-              <a href={`/section/${categorySlug(c.name)}`}>
+              <a href={c.path}>
                 <span class="rubriques__num">{String(i + 1).padStart(2, '0')}</span>
                 <h3>{c.name}</h3>
-                <p>{c.desc}</p>
               </a>
             </li>
           ))
@@ -91,8 +84,7 @@ const featuredStories = allArticles.slice(0, 3);
     </section>
   </main>
 
-  <SiteFooter />
-</Base>
+</Layout>
 
 <script>
   // Safely display email if passed in query string (?email=...)

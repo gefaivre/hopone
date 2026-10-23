@@ -1,0 +1,22 @@
+---
+// Every path that is not a coded page comes here (docs/site-contract.md#resolution): Publisher
+// says what it is, and the site's template renders it. Cached by Vercel (ISR) until Publisher
+// revalidates it.
+import { Layout, templates } from "virtual:publisher/templates";
+import PublisherHead from "../components/PublisherHead.astro";
+import { resolve } from "../runtime.ts";
+
+export const prerender = false;
+
+const resolved = await resolve(Astro.url.pathname);
+if (resolved.kind === "redirect") return Astro.redirect(resolved.location, resolved.status);
+if (resolved.kind === "file") return new Response(resolved.body, { headers: { "content-type": resolved.contentType } });
+
+Astro.response.status = resolved.status;
+const { template, head, ...props } = resolved.page;
+const Template = templates[template]!;
+---
+<Layout locale={props.locale} alternates={props.alternates}>
+  <PublisherHead slot="head" head={head} />
+  <Template {...props} />
+</Layout>

@@ -1,0 +1,27 @@
+---
+// The head of every page (docs/site-contract.md#head). Pages of the CMS get theirs from the
+// catch-all route; a coded page renders <PublisherHead /> without props and gets the head of its
+// declaration in publisher.config.ts.
+import type { Head } from "@publisher/client";
+import { pages, site } from "virtual:publisher/site";
+import { codedPage } from "../runtime.ts";
+
+type Props = { head?: Head };
+const head: Head = Astro.props.head ?? codedPage(site, pages, Astro.url.pathname).head;
+const json = (value: unknown) => JSON.stringify(value).replace(/</g, "\\u003c");
+---
+<title>{head.title}</title>
+<meta name="description" content={head.description} />
+<link rel="canonical" href={head.canonical} />
+<meta name="robots" content={head.robots} />
+{head.hreflang.map((h) => <link rel="alternate" hreflang={h.hreflang} href={h.href} />)}
+<meta property="og:type" content={head.openGraph.type} />
+<meta property="og:title" content={head.openGraph.title} />
+<meta property="og:description" content={head.openGraph.description} />
+<meta property="og:url" content={head.openGraph.url} />
+<meta property="og:site_name" content={head.openGraph.siteName} />
+<meta property="og:locale" content={head.openGraph.locale} />
+{head.openGraph.image && <meta property="og:image" content={head.openGraph.image} />}
+<meta name="twitter:card" content={head.openGraph.image ? "summary_large_image" : "summary"} />
+<link rel="alternate" type="application/rss+xml" href={head.feed} />
+{head.jsonLd.map((data) => <script type="application/ld+json" set:html={json(data)} />)}

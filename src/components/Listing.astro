@@ -1,58 +1,42 @@
 ---
-import type { ContentSummary, Paginated } from '@autoedit/astro-cms';
-import Base from '../layouts/Base.astro';
-import SiteHeader from './SiteHeader.astro';
-import SiteFooter from './SiteFooter.astro';
+import type { List } from '@publisher/astro';
 import ArticleCard from './ArticleCard.astro';
-import { toArticle } from '../data/articles';
+import { t } from '../i18n/ui';
 
 interface Props {
-  title: string;
+  locale: string;
   heading: string;
-  description: string;
-  /** Path of page 1, e.g. `/section/markets`. Next pages: `/section/markets/page/2`. */
-  basePath: string;
-  contents: Paginated<ContentSummary>;
-  empty?: string;
+  description?: string;
+  list: List;
 }
 
-const { title, heading, description, basePath, contents, empty = 'No stories yet. Check back soon.' } = Astro.props;
-const { page, totalPages } = contents;
-const pageHref = (n: number) => (n <= 1 ? basePath : `${basePath}/page/${n}`);
-const articles = contents.items.map(toArticle);
+const { locale, heading, description, list } = Astro.props;
+const ui = t(locale);
 ---
 
-<Base title={page > 1 ? `${title} — page ${page}` : title} description={description}>
-  <SiteHeader />
-
-  <main id="main" class="wrap listing">
-    <div class="section-head">
-      <h1 class="section-title">{heading}</h1>
-      {description && <p class="listing__desc">{description}</p>}
-    </div>
-    {
-      articles.length > 0 ? (
-        <div class="grid">
-          {articles.map((a) => (
-            <ArticleCard article={a} />
-          ))}
-        </div>
-      ) : (
-        <p class="listing__empty">{empty}</p>
-      )
-    }
-    {
-      totalPages > 1 && (
-        <nav class="pagination" aria-label="Pagination">
-          {page > 1 ? <a href={pageHref(page - 1)} rel="prev">← Newer</a> : <span />}
-          <span class="pagination__status">
-            Page {page} of {totalPages}
-          </span>
-          {page < totalPages ? <a href={pageHref(page + 1)} rel="next">Older →</a> : <span />}
-        </nav>
-      )
-    }
-  </main>
-
-  <SiteFooter />
-</Base>
+<main id="main" class="wrap listing">
+  <div class="section-head">
+    <h1 class="section-title">{heading}</h1>
+    {description && <p class="listing__desc">{description}</p>}
+  </div>
+  {
+    list.items.length > 0 ? (
+      <div class="grid">
+        {list.items.map((card) => (
+          <ArticleCard card={card} locale={locale} />
+        ))}
+      </div>
+    ) : (
+      <p class="listing__empty">{ui.empty}</p>
+    )
+  }
+  {
+    list.pageCount > 1 && (
+      <nav class="pagination" aria-label="Pagination">
+        {list.prev ? <a href={list.prev} rel="prev">{ui.newer}</a> : <span />}
+        <span class="pagination__status">{ui.pageOf(list.page, list.pageCount)}</span>
+        {list.next ? <a href={list.next} rel="next">{ui.older}</a> : <span />}
+      </nav>
+    )
+  }
+</main>

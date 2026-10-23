@@ -1,0 +1,9 @@
+---
+import type { TemplateProps } from '@publisher/astro';
+import Listing from '../components/Listing.astro';
+
+type Props = TemplateProps<'Author'>;
+const { locale, author, list } = Astro.props;
+---
+
+<Listing locale={locale} heading={author.name} description={author.bio} list={list} />

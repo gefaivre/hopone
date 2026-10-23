@@ -1,0 +1,26 @@
+{
+  "name": "@publisher/astro",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The contract between a site and Publisher: catch-all route, head, blocks, images, manifest (docs/site-contract.md).",
+  "exports": {
+    ".": "./src/index.ts",
+    "./components": "./src/components/index.ts",
+    "./site": "./src/site.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@publisher/client": "file:../client"
+  },
+  "peerDependencies": {
+    "astro": "^7.0.0",
+    "@astrojs/vercel": "^11.0.0"
+  },
+  "devDependencies": {
+    "astro": "^7.4.0",
+    "@astrojs/vercel": "^11.0.15"
+  }
+}

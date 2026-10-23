@@ -1,0 +1,30 @@
+---
+// An image served by Publisher, in AVIF and WebP, at the widths it exists in (docs/site-contract.md#images).
+import { IMAGE_WIDTHS, type Image } from "@publisher/client";
+
+type Props = {
+  image: Image;
+  /** The `sizes` attribute: the width the image takes on screen. */
+  sizes?: string;
+  loading?: "lazy" | "eager";
+  class?: string;
+};
+const { image, sizes = "100vw", loading = "lazy", class: className } = Astro.props;
+const widths = IMAGE_WIDTHS.filter((w) => w <= image.width);
+const srcset = (format: string) => widths.map((w) => `${image.url}/${w}.${format} ${w}w`).join(", ");
+const fallback = widths.includes(1024) ? 1024 : widths[widths.length - 1] ?? IMAGE_WIDTHS[0];
+---
+<picture>
+  <source type="image/avif" srcset={srcset("avif")} sizes={sizes} />
+  <source type="image/webp" srcset={srcset("webp")} sizes={sizes} />
+  <img
+    src={`${image.url}/${fallback}.webp`}
+    width={image.width}
+    height={image.height}
+    alt={image.alt}
+    loading={loading}
+    decoding="async"
+    fetchpriority={loading === "eager" ? "high" : undefined}
+    class={className}
+  />
+</picture>

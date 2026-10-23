@@ -1,4 +1,20 @@
 ---
-const search = Astro.url.search;
-return Astro.redirect(`/newsletter/thank-you${search}`);
+// Old confirmation address of the newsletter (Cardinal may still send subscribers here):
+// forwards to /newsletter/thank-you with the query string (?email=). index: false in publisher.config.ts.
+export const prerender = true;
 ---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex, follow" />
+    <title>Hopone</title>
+    <script is:inline>
+      location.replace('/newsletter/thank-you' + location.search);
+    </script>
+  </head>
+  <body>
+    <a href="/newsletter/thank-you">Continue to Hopone</a>
+  </body>
+</html>

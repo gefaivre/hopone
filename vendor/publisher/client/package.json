@@ -1,0 +1,12 @@
+{
+  "name": "@publisher/client",
+  "private": true,
+  "type": "module",
+  "description": "Browser client of the Publisher public APIs, with TanStack Query options. No dependencies.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  }
+}
